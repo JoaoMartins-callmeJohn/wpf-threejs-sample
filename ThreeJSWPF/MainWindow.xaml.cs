@@ -89,7 +89,9 @@ namespace ThreeJSWPF
     </style>
 </head>
 <body>
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'></script>
+    <script src='https://unpkg.com/three@0.128.0/build/three.min.js'></script>
+    <!-- Use unpkg CDN as an alternative -->
+    <script src='https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js'></script>
     <script>
         // Initialize the scene, camera, and renderer
         const scene = new THREE.Scene();
@@ -98,9 +100,20 @@ namespace ThreeJSWPF
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.z = 5;
         
-        const renderer = new THREE.WebGLRenderer();
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
+        
+        // Add OrbitControls to the camera
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; // Add smooth damping effect
+        controls.dampingFactor = 0.05;
+        controls.rotateSpeed = 0.8; // Adjust rotation speed
+        controls.zoomSpeed = 1.2; // Adjust zoom speed
+        controls.panSpeed = 0.8; // Adjust pan speed
+        controls.minDistance = 2; // Minimum zoom distance
+        controls.maxDistance = 20; // Maximum zoom distance
+        controls.maxPolarAngle = Math.PI * 0.9; // Prevent going below the ground plane
         
         // Add a light
         const light = new THREE.DirectionalLight(0xffffff, 1);
@@ -110,6 +123,10 @@ namespace ThreeJSWPF
         // Add ambient light
         const ambientLight = new THREE.AmbientLight(0x404040);
         scene.add(ambientLight);
+        
+        // Add a grid helper for reference
+        const gridHelper = new THREE.GridHelper(10, 10);
+        scene.add(gridHelper);
         
         // Create materials with different colors
         const materials = [
@@ -181,14 +198,63 @@ namespace ThreeJSWPF
             window.chrome.webview.postMessage('Colors randomized');
         }
         
+        // Reset camera to default position
+        function resetCamera() {
+            // Create a smooth animation to the default camera position
+            const startPosition = camera.position.clone();
+            const startTarget = controls.target.clone();
+            
+            // Define the default camera position and target
+            const defaultPosition = new THREE.Vector3(0, 0, 5);
+            const defaultTarget = new THREE.Vector3(0, 0, 0);
+            
+            // Animate over 1 second (60 frames at 60fps)
+            const frames = 60;
+            let frame = 0;
+            
+            function animateReset() {
+                if (frame < frames) {
+                    // Calculate interpolation factor (ease out)
+                    const t = 1 - Math.pow(1 - frame / frames, 3); // Cubic ease out
+                    
+                    // Interpolate camera position
+                    camera.position.lerpVectors(startPosition, defaultPosition, t);
+                    
+                    // Interpolate target position
+                    controls.target.lerpVectors(startTarget, defaultTarget, t);
+                    
+                    // Update controls
+                    controls.update();
+                    
+                    // Next frame
+                    frame++;
+                    requestAnimationFrame(animateReset);
+                } else {
+                    // Ensure we reach exactly the desired position
+                    camera.position.copy(defaultPosition);
+                    controls.target.copy(defaultTarget);
+                    controls.update();
+                    
+                    // Notify C# that camera reset is complete
+                    window.chrome.webview.postMessage('Camera reset complete');
+                }
+            }
+            
+            // Start animation
+            animateReset();
+        }
+        
         // Animation loop
         function animate() {
             requestAnimationFrame(animate);
             
-            // Rotate the objects
+            // Update orbit controls - critical for smooth damping
+            controls.update();
+            
+            // Gently rotate the objects - slower than before to allow manual control
             objects.forEach((obj, index) => {
-                obj.rotation.x += 0.01 * (index + 1);
-                obj.rotation.y += 0.01 * (index + 1);
+                obj.rotation.x += 0.002 * (index + 1);
+                obj.rotation.y += 0.002 * (index + 1);
             });
             
             renderer.render(scene, camera);
