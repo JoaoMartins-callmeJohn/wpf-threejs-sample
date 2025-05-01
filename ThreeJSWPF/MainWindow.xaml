@@ -1,0 +1,21 @@
+﻿<Window x:Class="ThreeJSWPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        xmlns:local="clr-namespace:ThreeJSWPF"
+        mc:Ignorable="d"
+        Title="THREE.js in WebView2" Height="600" Width="800">
+    <DockPanel>
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Background="#F0F0F0" Margin="10">
+            <Button x:Name="btnBoxes" Click="btnBoxes_Click" Margin="5" Padding="5">Boxes</Button>
+            <Button x:Name="btnSpheres" Click="btnSpheres_Click" Margin="5" Padding="5">Spheres</Button>
+            <Button x:Name="btnCylinders" Click="btnCylinders_Click" Margin="5" Padding="5">Cylinders</Button>
+            <Button x:Name="btnTorus" Click="btnTorus_Click" Margin="5" Padding="5">Torus</Button>
+            <Button x:Name="btnRandomSize" Click="btnRandomSize_Click" Margin="5" Padding="5">Random Size</Button>
+            <Button x:Name="btnRandomColor" Click="btnRandomColor_Click" Margin="5" Padding="5">Random Color</Button>
+      </StackPanel>
+      <wv2:WebView2 x:Name="webView" />
+    </DockPanel>
+</Window>
